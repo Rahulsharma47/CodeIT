@@ -29,7 +29,7 @@ const fetch = require('node-fetch');
 
 
 // Initialize Gemini AI
-const genAI = new GoogleGenerativeAI('AIzaSyAlT6WgkIcR9np0xAO6AP4UqEADx4UgOoE');
+const genAI = new GoogleGenerativeAI('YOUR-API-KEY');
 const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
 function createWindow() {
