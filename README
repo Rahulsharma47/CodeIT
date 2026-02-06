@@ -1,0 +1,175 @@
+# AI Code Debugger - Setup Guide
+
+## Features Implemented
+
+### 1. **AI Code Explanation with Dry Run**
+- Provides beginner-friendly explanations of your code
+- Step-by-step breakdown of what happens
+- Shows a complete dry run with variable states
+- Key learning points highlighted
+
+### 2. **AI Fix Suggestions**
+- Diagnoses errors with clear explanations
+- Shows exactly what needs to change (before/after comparison)
+- Provides corrected code you can apply with one click
+- Explains how to prevent similar errors in future
+
+### 3. **Best Practices & Code Review**
+- Overall code quality rating
+- Lists what you did well
+- Prioritized improvements (High/Medium/Low)
+- Optimized version of your code if applicable
+- General best practices advice
+
+## Prerequisites
+
+1. **Node.js** (v16 or higher) - [Download](https://nodejs.org/)
+2. **Python 3** (for Python support)
+3. **g++** compiler (for C++ support)
+4. **Gemini API Key** - [Get one free](https://makersuite.google.com/app/apikey)
+
+## Installation Steps
+
+### Step 1: Install Dependencies
+
+```bash
+npm install
+```
+
+This will install:
+- Electron
+- @google/generative-ai (Gemini SDK)
+
+### Step 2: Add Your Gemini API Key
+
+Open `main.js` and replace `YOUR_GEMINI_API_KEY_HERE` with your actual API key:
+
+```javascript
+const genAI = new GoogleGenerativeAI('your-actual-api-key-here');
+```
+
+**Important:** Never commit your API key to version control!
+
+### Step 3: Verify Compilers
+
+**Python:**
+```bash
+python3 --version  # or python --version on Windows
+```
+
+**C++:**
+```bash
+g++ --version
+```
+
+If you don't have g++:
+- **Windows**: Install [MinGW](http://mingw-w64.org/)
+- **Mac**: Install Xcode Command Line Tools: `xcode-select --install`
+- **Linux**: `sudo apt install g++` (Ubuntu/Debian)
+
+### Step 4: Run the Application
+
+```bash
+npm start
+```
+
+## How to Use
+
+### Running Code
+1. Select language (Python/C++)
+2. Write or paste your code
+3. Add input values in the Input panel (if needed)
+4. Click **Run Code** (or press Ctrl/Cmd + Enter)
+
+### AI Features
+
+#### 🧠 AI Explain
+- Click after writing code
+- Gets a complete explanation with dry run
+- Shows how variables change step-by-step
+- Perfect for learning
+
+#### ✨ AI Fix
+- Appears when your code has errors
+- Click to get intelligent fix suggestions
+- Shows exact changes needed
+- Can apply the fix automatically
+
+#### 📝 Best Practices
+- Run your code first
+- Click to get code review
+- See improvement suggestions
+- Get optimized version if applicable
+
+## Project Structure
+
+```
+ai-code-debugger/
+├── main.js              # Electron main process (backend + AI)
+├── preload.js           # Bridge between frontend and backend
+├── index-codemirror.html # Frontend UI
+├── package.json         # Dependencies
+└── README.md           # This file
+```
+
+## API Usage & Costs
+
+Gemini API offers:
+- **Free tier**: 60 requests per minute
+- Generous token limits
+- Good for development and learning
+
+For production, consider:
+- Rate limiting (already handled with loading states)
+- Caching responses for common patterns
+- Error handling (implemented)
+
+## Troubleshooting
+
+### "python not found"
+- Windows: Make sure Python is in PATH
+- Try `python3` instead of `python`
+
+### "g++ not found"
+- Install compiler (see Step 3)
+- Restart terminal after installation
+
+### API errors
+- Check your API key is correct
+- Verify internet connection
+- Check Gemini API status
+
+### Slow AI responses
+- Normal for first request (2-5 seconds)
+- Gemini needs to process and analyze
+- Consider adding caching for frequently used code
+
+## Keyboard Shortcuts
+
+- `Ctrl/Cmd + Enter`: Run code
+- `Ctrl/Cmd + S`: (Could add save feature)
+
+## Future Enhancements
+
+Possible additions:
+- Code autocomplete (basic version with Gemini)
+- Save/load code files
+- Code snippets library
+- Multiple file support
+- Custom themes
+- Export explanations as PDF
+
+## Contributing
+
+Feel free to:
+- Report bugs
+- Suggest features
+- Submit pull requests
+
+## License
+
+MIT License - Free to use and modify
+
+---
+
+**Happy Coding!** 🚀

@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>AI Code Debugger - Login</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #e0e0e0;
+    }
+
+    .container {
+      background: #1e1e2e;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      width: 100%;
+      max-width: 400px;
+      border: 1px solid #2d2d3d;
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .logo-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+
+    h1, h2 {
+      font-size: 24px;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+
+    .subtitle {
+      color: #a0a0b0;
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: #a0a0b0;
+      font-weight: 600;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid #3d3d4d;
+      border-radius: 8px;
+      background: #252537;
+      color: #e0e0e0;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 12px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      color: white;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: #6366f1;
+      border: 1.5px solid #6366f1;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(99, 102, 241, 0.1);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .success {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid #2d2d3d;
+      border-top-color: #6366f1;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    #project-selector {
+      display: none;
+    }
+
+    .user-info {
+      background: #252537;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .user-email {
+      font-size: 14px;
+      color: #a0a0b0;
+    }
+
+    .btn-logout {
+      padding: 6px 12px;
+      font-size: 12px;
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      width: auto;
+    }
+
+    .btn-logout:hover {
+      background: rgba(239, 68, 68, 0.3);
+    }
+
+    .project-list {
+      max-height: 400px;
+      overflow-y: auto;
+      margin-bottom: 16px;
+    }
+
+    .project-item {
+      background: #252537;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid #2d2d3d;
+    }
+
+    .project-item:hover {
+      background: #2d2d3d;
+      transform: translateX(4px);
+    }
+
+    .project-name {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .project-meta {
+      font-size: 12px;
+      color: #a0a0b0;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #5a5a6a;
+    }
+
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+    
+    input[type="radio"]:checked + span {
+      color: #6366f1;
+      font-weight: 600;
+    }
+    
+    input[type="radio"]:checked {
+      accent-color: #6366f1;
+    }
+    
+    label:has(input[type="radio"]:checked) {
+      border-color: #6366f1 !important;
+      background: rgba(99, 102, 241, 0.1) !important;
+    }
+  </style>
+</head>
+<body>
+  <!-- LOGIN FORM -->
+  <div class="container" id="login-form">
+    <div class="logo">
+      <div class="logo-icon">🤖</div>
+      <h1>AI Code Debugger</h1>
+      <div class="subtitle">Sync your code across devices</div>
+    </div>
+
+    <div class="error" id="error-msg"></div>
+    <div class="success" id="success-msg"></div>
+
+    <div id="auth-form">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="you@example.com" />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="••••••••" />
+      </div>
+
+      <button class="btn-primary" id="signin-btn">Sign In</button>
+      <button class="btn-secondary" id="signup-btn">Create Account</button>
+    </div>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p style="margin-top: 12px; font-size: 14px; color: #a0a0b0;">Loading...</p>
+    </div>
+  </div>
+
+  <!-- PROJECT SELECTOR -->
+  <div class="container" id="project-selector" style="max-width: 600px;">
+    <div class="logo">
+      <h1>Your Projects</h1>
+    </div>
+
+    <div class="user-info">
+      <div class="user-email" id="user-email"></div>
+      <button class="btn-logout" id="logout-btn">Logout</button>
+    </div>
+
+    <div class="project-list" id="project-list">
+      <div class="empty-state">
+        <div class="empty-icon">📁</div>
+        <div>No projects yet</div>
+        <div style="font-size: 12px; margin-top: 8px;">Create one to get started</div>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="new-project-btn">+ New Project</button>
+    <button class="btn-secondary" id="open-editor-btn">Open Local Editor</button>
+  </div>
+
+  <!-- CUSTOM PROJECT DIALOG -->
+  <div id="project-dialog" style="
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+  ">
+    <div style="
+      background: #1e1e2e;
+      padding: 30px;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 400px;
+      border: 1px solid #2d2d3d;
+    ">
+      <h2 style="margin-bottom: 20px; color: #fff; font-size: 20px;">Create New Project</h2>
+      
+      <div class="form-group">
+        <label for="project-name">Project Name</label>
+        <input type="text" id="project-name" placeholder="My Awesome Project" />
+      </div>
+
+      <div class="form-group">
+        <label>Language</label>
+        <div style="display: flex; gap: 12px;">
+          <label style="
+            flex: 1;
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #252537;
+            border: 2px solid #3d3d4d;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 0;
+          ">
+            <input type="radio" name="language" value="python" checked style="margin-right: 8px;" />
+            <span style="color: #e0e0e0;">🐍 Python</span>
+          </label>
+          
+          <label style="
+            flex: 1;
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #252537;
+            border: 2px solid #3d3d4d;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 0;
+          ">
+            <input type="radio" name="language" value="cpp" style="margin-right: 8px;" />
+            <span style="color: #e0e0e0;">⚡ C++</span>
+          </label>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 12px; margin-top: 24px;">
+        <button class="btn-secondary" id="cancel-project-btn" style="flex: 1;">Cancel</button>
+        <button class="btn-primary" id="create-project-btn" style="flex: 1;">Create</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    console.log('🚀 Script started');
+    
+    const loginForm = document.getElementById('login-form');
+    const projectSelector = document.getElementById('project-selector');
+    const authForm = document.getElementById('auth-form');
+    const loading = document.getElementById('loading');
+    const errorMsg = document.getElementById('error-msg');
+    const successMsg = document.getElementById('success-msg');
+
+    // Check if user is already logged in
+    window.api.firebaseGetCurrentUser().then(user => {
+      if (user) {
+        showProjectSelector(user);
+      }
+    });
+
+    // Sign In
+    document.getElementById('signin-btn').addEventListener('click', async () => {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      if (!email || !password) {
+        showError('Please fill in all fields');
+        return;
+      }
+
+      authForm.style.display = 'none';
+      loading.style.display = 'block';
+
+      const result = await window.api.firebaseSignIn(email, password);
+      
+      if (result.success) {
+        showProjectSelector(result.user);
+      } else {
+        showError(result.error);
+        authForm.style.display = 'block';
+        loading.style.display = 'none';
+      }
+    });
+
+    // Sign Up
+    document.getElementById('signup-btn').addEventListener('click', async () => {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      if (!email || !password) {
+        showError('Please fill in all fields');
+        return;
+      }
+
+      if (password.length < 6) {
+        showError('Password must be at least 6 characters');
+        return;
+      }
+
+      authForm.style.display = 'none';
+      loading.style.display = 'block';
+
+      const result = await window.api.firebaseSignUp(email, password);
+      
+      if (result.success) {
+        showSuccess('Account created! Loading projects...');
+        setTimeout(() => showProjectSelector(result.user), 1000);
+      } else {
+        showError(result.error);
+        authForm.style.display = 'block';
+        loading.style.display = 'none';
+      }
+    });
+
+    // Show Project Selector
+    async function showProjectSelector(user) {
+      loginForm.style.display = 'none';
+      projectSelector.style.display = 'block';
+      
+      document.getElementById('user-email').textContent = user.email;
+      
+      await loadProjects();
+    }
+
+    // Load Projects
+    async function loadProjects() {
+      const result = await window.api.firebaseGetProjects();
+      
+      if (result.success) {
+        const projectList = document.getElementById('project-list');
+        
+        if (result.projects.length === 0) {
+          projectList.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-icon">📁</div>
+              <div>No projects yet</div>
+              <div style="font-size: 12px; margin-top: 8px;">Create one to get started</div>
+            </div>
+          `;
+          return;
+        }
+
+        projectList.innerHTML = result.projects.map(project => `
+          <div class="project-item" onclick="openProject('${project.id}', '${project.language}', '${escapeHtml(project.name)}')">
+            <div class="project-name">${escapeHtml(project.name)}</div>
+            <div class="project-meta">
+              ${project.language.toUpperCase()} • 
+              Last modified from ${project.lastModifiedBy} • 
+              ${formatDate(project.lastModified)}
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    // Open Project
+    window.openProject = async (projectId, language, name) => {
+      console.log('Opening project:', { projectId, language, name });
+      await window.api.navigateToEditor({
+        projectId: projectId,
+        language: language,
+        name: name
+      });
+    };
+
+    // NEW PROJECT BUTTON
+    console.log('Setting up new project button...');
+    document.getElementById('new-project-btn').addEventListener('click', () => {
+      console.log('🔵 New Project button clicked!');
+      const dialog = document.getElementById('project-dialog');
+      console.log('Dialog element:', dialog);
+      dialog.style.display = 'flex';
+      document.getElementById('project-name').value = '';
+      document.getElementById('project-name').focus();
+      document.querySelector('input[name="language"][value="python"]').checked = true;
+    });
+
+    // CANCEL BUTTON
+    document.getElementById('cancel-project-btn').addEventListener('click', () => {
+      console.log('Cancel clicked');
+      document.getElementById('project-dialog').style.display = 'none';
+    });
+
+    // CREATE BUTTON
+    document.getElementById('create-project-btn').addEventListener('click', async () => {
+      console.log('📝 Create button clicked!');
+      
+      const name = document.getElementById('project-name').value.trim();
+      console.log('Project name:', name);
+      
+      if (!name) {
+        showError('Please enter a project name');
+        return;
+      }
+      
+      const language = document.querySelector('input[name="language"]:checked').value;
+      console.log('Language:', language);
+      
+      const createBtn = document.getElementById('create-project-btn');
+      const cancelBtn = document.getElementById('cancel-project-btn');
+      const originalText = createBtn.textContent;
+      
+      createBtn.disabled = true;
+      cancelBtn.disabled = true;
+      createBtn.textContent = 'Creating...';
+      
+      console.log('📡 Calling firebaseCreateProject...');
+      
+      try {
+        const result = await window.api.firebaseCreateProject(name, language, '');
+        console.log('✅ Result:', result);
+        
+        if (result.success) {
+          document.getElementById('project-dialog').style.display = 'none';
+          showSuccess('Project created! Opening editor...');
+          
+          setTimeout(async () => {
+            await window.api.navigateToEditor({
+              projectId: result.projectId,
+              language: language,
+              name: name
+            });
+          }, 500);
+        } else {
+          showError('Failed: ' + result.error);
+          createBtn.disabled = false;
+          cancelBtn.disabled = false;
+          createBtn.textContent = originalText;
+        }
+      } catch (error) {
+        console.error('💥 Error:', error);
+        showError('Error: ' + error.message);
+        createBtn.disabled = false;
+        cancelBtn.disabled = false;
+        createBtn.textContent = originalText;
+      }
+    });
+
+    // ENTER KEY
+    document.getElementById('project-name').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        document.getElementById('create-project-btn').click();
+      }
+    });
+
+    // ESC KEY
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const dialog = document.getElementById('project-dialog');
+        if (dialog && dialog.style.display === 'flex') {
+          dialog.style.display = 'none';
+        }
+      }
+    });
+
+    // Open Local Editor
+    document.getElementById('open-editor-btn').addEventListener('click', async () => {
+      await window.api.navigateToEditor(null);
+    });
+
+    // Logout
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      await window.api.firebaseSignOut();
+      projectSelector.style.display = 'none';
+      loginForm.style.display = 'block';
+      authForm.style.display = 'block';
+      loading.style.display = 'none';
+    });
+
+    // Helper functions
+    function showError(msg) {
+      errorMsg.textContent = msg;
+      errorMsg.style.display = 'block';
+      successMsg.style.display = 'none';
+      setTimeout(() => { errorMsg.style.display = 'none'; }, 5000);
+    }
+
+    function showSuccess(msg) {
+      successMsg.textContent = msg;
+      successMsg.style.display = 'block';
+      errorMsg.style.display = 'none';
+      setTimeout(() => { successMsg.style.display = 'none'; }, 3000);
+    }
+
+    function formatDate(dateStr) {
+      const date = new Date(dateStr);
+      const now = new Date();
+      const diff = now - date;
+      
+      const minutes = Math.floor(diff / 60000);
+      if (minutes < 1) return 'Just now';
+      if (minutes < 60) return `${minutes}m ago`;
+      
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `${hours}h ago`;
+      
+      const days = Math.floor(hours / 24);
+      return `${days}d ago`;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    console.log('✅ All event listeners registered');
+  </script>
+</body>
+</html>

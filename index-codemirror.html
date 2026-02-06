@@ -1,0 +1,2159 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Smart Code Debugger - AI Enhanced</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+          sans-serif;
+        background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 1800px;
+        height: 95vh;
+        background: #1e1e2e;
+        border-radius: 20px;
+        box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid #2d2d3d;
+      }
+
+      .header {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        padding: 16px 30px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 2px solid #4f46e5;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .logo-icon {
+        font-size: 28px;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+      }
+      .logo-text {
+        font-size: 20px;
+        font-weight: 700;
+        color: white;
+        letter-spacing: -0.3px;
+      }
+
+      #toolbar {
+        background: #252537;
+        padding: 14px 30px;
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        border-bottom: 1px solid #2d2d3d;
+        flex-wrap: wrap;
+      }
+
+      .toolbar-group {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+
+      label {
+        color: #a0a0b0;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      select {
+        padding: 8px 14px;
+        border: 1.5px solid #3d3d4d;
+        border-radius: 8px;
+        font-size: 14px;
+        background: #1e1e2e;
+        color: #e0e0e0;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 500;
+      }
+
+      select:hover {
+        border-color: #6366f1;
+        background: #252537;
+      }
+      select:focus {
+        outline: none;
+        border-color: #818cf8;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+      }
+
+      button {
+        padding: 9px 20px;
+        border: none;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        letter-spacing: 0.3px;
+      }
+
+      #run {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+      }
+
+      #run:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+      }
+      #run:active {
+        transform: translateY(0);
+      }
+
+      /* AI Buttons */
+      #ai-explain {
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+      }
+
+      #ai-explain:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+      }
+
+      #ai-fix {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+      }
+
+      #ai-fix:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+      }
+
+      #ai-review {
+        background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+      }
+
+      #ai-review:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
+      }
+
+      button:disabled {
+        background: #2d2d3d !important;
+        color: #666 !important;
+        cursor: not-allowed !important;
+        transform: none !important;
+        box-shadow: none !important;
+      }
+
+      .spacer {
+        flex: 1;
+      }
+
+      .status {
+        color: #a0a0b0;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 14px;
+        background: rgba(99, 102, 241, 0.1);
+        border-radius: 8px;
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        background: #10b981;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.7;
+          transform: scale(0.95);
+        }
+      }
+
+      .main-content {
+        flex: 1;
+        display: flex;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .center-section {
+        flex: 1;
+        display: flex;
+        min-width: 0;
+      }
+
+      .left-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+
+      #editor-container {
+        flex: 1;
+        overflow: hidden;
+        background: #1e1e2e;
+        position: relative;
+        border-bottom: 2px solid #2d2d3d;
+      }
+
+      .bottom-io-section {
+        height: 250px;
+        display: flex;
+        background: #1a1a2a;
+      }
+
+      .io-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .io-panel:first-child {
+        border-right: 2px solid #2d2d3d;
+      }
+
+      .complexity-sidebar {
+        width: 300px;
+        display: flex;
+        flex-direction: column;
+        border-left: 2px solid #2d2d3d;
+        background: #1a1a2a;
+      }
+
+      /* AI Sidebar - slides in from right */
+      .ai-sidebar {
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 500px;
+        background: #1a1a2a;
+        border-left: 2px solid #2d2d3d;
+        display: flex;
+        flex-direction: column;
+        transform: translateX(100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 100;
+        box-shadow: -4px 0 20px rgba(0, 0, 0, 0.5);
+      }
+
+      .ai-sidebar.open {
+        transform: translateX(0);
+      }
+
+      .sidebar-header {
+        padding: 16px 20px;
+        background: #252537;
+        border-bottom: 2px solid #2d2d3d;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .sidebar-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #e0e0e0;
+        font-weight: 600;
+        font-size: 14px;
+      }
+
+      .close-sidebar {
+        background: transparent;
+        border: none;
+        color: #a0a0b0;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 4px;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .close-sidebar:hover {
+        background: #3d3d4d;
+        color: #e0e0e0;
+      }
+
+      .ai-sidebar-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+      }
+
+      .CodeMirror {
+        height: 100%;
+        font-size: 15px;
+        font-family: "Fira Code", "Consolas", "Monaco", monospace;
+        line-height: 1.6;
+      }
+
+      .CodeMirror-gutters {
+        background: #1a1a2a !important;
+        border-right: 1px solid #2d2d3d;
+      }
+      .CodeMirror-linenumber {
+        color: #5a5a6a !important;
+        padding: 0 12px 0 8px !important;
+      }
+
+      .error-line {
+        background: rgba(239, 68, 68, 0.12) !important;
+        border-left: 3px solid #ef4444;
+      }
+
+      .panel-header {
+        padding: 14px 18px;
+        background: #252537;
+        color: #e0e0e0;
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-bottom: 1px solid #2d2d3d;
+      }
+
+      .panel-icon {
+        font-size: 16px;
+      }
+
+      .panel-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px;
+      }
+
+      .panel-content::-webkit-scrollbar {
+        width: 8px;
+      }
+      .panel-content::-webkit-scrollbar-track {
+        background: #1a1a2a;
+      }
+      .panel-content::-webkit-scrollbar-thumb {
+        background: #3d3d4d;
+        border-radius: 4px;
+      }
+      .panel-content::-webkit-scrollbar-thumb:hover {
+        background: #4d4d5d;
+      }
+
+      .ai-sidebar-content::-webkit-scrollbar {
+        width: 8px;
+      }
+      .ai-sidebar-content::-webkit-scrollbar-track {
+        background: #1a1a2a;
+      }
+      .ai-sidebar-content::-webkit-scrollbar-thumb {
+        background: #3d3d4d;
+        border-radius: 4px;
+      }
+      .ai-sidebar-content::-webkit-scrollbar-thumb:hover {
+        background: #4d4d5d;
+      }
+
+      /* AI Explanation Styles */
+      .ai-section {
+        background: linear-gradient(135deg, #252537 0%, #1e1e2e 100%);
+        padding: 16px;
+        border-radius: 10px;
+        margin-bottom: 14px;
+        border: 1px solid #2d2d3d;
+      }
+
+      .ai-section-title {
+        color: #818cf8;
+        font-weight: 700;
+        font-size: 14px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .ai-text {
+        color: #d0d0e0;
+        font-size: 13px;
+        line-height: 1.7;
+        margin-bottom: 10px;
+      }
+
+      .ai-step {
+        background: #1a1a2a;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        border-left: 3px solid #8b5cf6;
+      }
+
+      .ai-step-header {
+        color: #8b5cf6;
+        font-weight: 600;
+        font-size: 12px;
+        margin-bottom: 6px;
+      }
+
+      .ai-step-desc {
+        color: #d0d0e0;
+        font-size: 12px;
+        line-height: 1.6;
+        margin-bottom: 8px;
+      }
+
+      .ai-code-snippet {
+        background: #0f0f1e;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-family: "Fira Code", monospace;
+        font-size: 12px;
+        color: #f8f8f2;
+        margin-top: 6px;
+        border: 1px solid #2d2d3d;
+      }
+
+      .ai-variables {
+        color: #a0a0b0;
+        font-size: 11px;
+        font-family: "Fira Code", monospace;
+        margin-top: 6px;
+        padding: 6px 10px;
+        background: rgba(139, 92, 246, 0.1);
+        border-radius: 4px;
+      }
+
+      /* AI Fix Styles */
+      .fix-diagnosis {
+        background: rgba(245, 158, 11, 0.1);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 12px;
+      }
+
+      .fix-title {
+        color: #f59e0b;
+        font-weight: 600;
+        font-size: 13px;
+        margin-bottom: 6px;
+      }
+
+      .fix-text {
+        color: #d0d0e0;
+        font-size: 12px;
+        line-height: 1.6;
+      }
+
+      .fix-change {
+        background: #1a1a2a;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        border-left: 3px solid #10b981;
+      }
+
+      .fix-change-line {
+        color: #10b981;
+        font-weight: 600;
+        font-size: 11px;
+        margin-bottom: 6px;
+      }
+
+      .fix-before {
+        background: rgba(239, 68, 68, 0.1);
+        padding: 6px 10px;
+        border-radius: 4px;
+        font-family: "Fira Code", monospace;
+        font-size: 11px;
+        color: #f87171;
+        margin-bottom: 4px;
+      }
+
+      .fix-after {
+        background: rgba(16, 185, 129, 0.1);
+        padding: 6px 10px;
+        border-radius: 4px;
+        font-family: "Fira Code", monospace;
+        font-size: 11px;
+        color: #34d399;
+        margin-bottom: 4px;
+      }
+
+      .fix-reason {
+        color: #a0a0b0;
+        font-size: 11px;
+        margin-top: 4px;
+      }
+
+      .apply-fix-btn {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: all 0.2s;
+      }
+
+      .apply-fix-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+      }
+
+      /* Best Practices Styles */
+      .review-rating {
+        background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+        color: white;
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 14px;
+        text-align: center;
+        font-weight: 700;
+        font-size: 14px;
+      }
+
+      .improvement-card {
+        background: #1a1a2a;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        border-left: 3px solid #06b6d4;
+      }
+
+      .improvement-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+
+      .improvement-category {
+        color: #06b6d4;
+        font-weight: 600;
+        font-size: 12px;
+      }
+
+      .priority-badge {
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 700;
+      }
+
+      .priority-high {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+      }
+      .priority-medium {
+        background: rgba(245, 158, 11, 0.2);
+        color: #f59e0b;
+      }
+      .priority-low {
+        background: rgba(16, 185, 129, 0.2);
+        color: #10b981;
+      }
+
+      .improvement-issue {
+        color: #d0d0e0;
+        font-size: 12px;
+        margin-bottom: 6px;
+      }
+
+      .improvement-suggestion {
+        color: #10b981;
+        font-size: 12px;
+        margin-bottom: 6px;
+      }
+
+      .best-practice-item {
+        background: rgba(99, 102, 241, 0.1);
+        padding: 10px 12px;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        color: #d0d0e0;
+        font-size: 12px;
+        line-height: 1.6;
+        border-left: 2px solid #6366f1;
+      }
+
+      /* Complexity Cards */
+      .complexity-card {
+        background: linear-gradient(135deg, #252537 0%, #1e1e2e 100%);
+        padding: 16px;
+        border-radius: 10px;
+        margin-bottom: 14px;
+        border: 1px solid #2d2d3d;
+        transition: all 0.2s;
+      }
+
+      .complexity-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+      }
+
+      .complexity-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+
+      .complexity-title {
+        color: #818cf8;
+        font-weight: 600;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .complexity-badge {
+        padding: 4px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+      }
+
+      .complexity-low {
+        background: rgba(16, 185, 129, 0.2);
+        color: #10b981;
+      }
+      .complexity-medium {
+        background: rgba(245, 158, 11, 0.2);
+        color: #f59e0b;
+      }
+      .complexity-high {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+      }
+
+      .complexity-description {
+        color: #a0a0b0;
+        font-size: 12px;
+        line-height: 1.6;
+        margin-top: 8px;
+      }
+
+      .complexity-details {
+        background: #1a1a2a;
+        padding: 10px;
+        border-radius: 6px;
+        margin-top: 10px;
+        border: 1px solid #2d2d3d;
+      }
+
+      .complexity-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 6px 0;
+        font-size: 12px;
+      }
+
+      .complexity-label {
+        color: #6272a4;
+        font-weight: 500;
+      }
+      .complexity-value {
+        color: #e0e0e0;
+        font-weight: 600;
+        font-family: "Fira Code", monospace;
+      }
+
+      .panel-header {
+        padding: 12px 18px;
+        background: #252537;
+        color: #e0e0e0;
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-bottom: 1px solid #2d2d3d;
+      }
+
+      .panel-icon {
+        font-size: 16px;
+      }
+
+      #input-area {
+        flex: 1;
+        background: #1e1e2e;
+        color: #e0e0e0;
+        border: none;
+        padding: 14px;
+        font-family: "Fira Code", "Consolas", monospace;
+        font-size: 13px;
+        resize: none;
+        outline: none;
+      }
+
+      #input-area::placeholder {
+        color: #5a5a6a;
+      }
+
+      .input-hint {
+        padding: 10px 14px;
+        background: #252537;
+        color: #a0a0b0;
+        font-size: 11px;
+        border-top: 1px solid #2d2d3d;
+      }
+
+      #output {
+        flex: 1;
+        color: #e0e0e0;
+        font-family: "Fira Code", "Consolas", monospace;
+        font-size: 13px;
+        padding: 20px;
+        overflow: auto;
+        white-space: pre-wrap;
+        background: #1e1e2e;
+      }
+
+      #output::-webkit-scrollbar {
+        width: 8px;
+      }
+      #output::-webkit-scrollbar-track {
+        background: #1a1a2a;
+      }
+      #output::-webkit-scrollbar-thumb {
+        background: #3d3d3d;
+        border-radius: 4px;
+      }
+      #output::-webkit-scrollbar-thumb:hover {
+        background: #6272a4;
+      }
+
+      .output-empty {
+        color: #5a5a6a;
+        font-style: italic;
+      }
+      .output-error {
+        color: #f87171;
+      }
+      .output-success {
+        color: #34d399;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #5a5a6a;
+      }
+
+      .empty-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.5;
+      }
+      .empty-text {
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 30px;
+        color: #818cf8;
+        font-size: 14px;
+        gap: 10px;
+      }
+
+      .spinner {
+        width: 20px;
+        height: 20px;
+        border: 3px solid #2d2d3d;
+        border-top-color: #818cf8;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <div class="logo">
+          <div class="logo-icon">🤖</div>
+          <div class="logo-text">AI Code Debugger</div>
+        </div>
+      </div>
+
+      <div id="toolbar">
+        <div class="toolbar-group">
+          <label for="language">Language</label>
+          <select id="language">
+            <option value="python">Python 3</option>
+            <option value="cpp">C++17</option>
+          </select>
+
+        </div>
+
+        <button id="run">
+          <span>▶</span>
+          <span>Run Code</span>
+        </button>
+
+        <button id="ai-explain">
+          <span>🧠</span>
+          <span>AI Explain</span>
+        </button>
+
+        <button id="ai-fix" style="display: none">
+          <span>✨</span>
+          <span>AI Fix</span>
+        </button>
+
+        <button id="ai-review">
+          <span>📊</span>
+          <span>Best Practices</span>
+        </button>
+        <button id="back-to-login-btn" style="
+          background: transparent;
+          color: #6366f1;
+          border: 1.5px solid #6366f1;
+          box-shadow: none;
+          display: flex;
+        ">
+          <span>←</span>
+          <span>Back to Projects</span>
+        </button>
+
+        <div class="spacer"></div>
+
+        <div class="status">
+          <span class="status-dot"></span>
+          <span id="status-text">Ready to code</span>
+        </div>
+      </div>
+
+      <div class="main-content">
+        <!-- Center Section: Editor + Input/Output + Complexity -->
+        <div class="center-section">
+          <div class="left-main">
+            <div id="editor-container">
+              <textarea id="editor"></textarea>
+            </div>
+
+            <div class="bottom-io-section">
+              <div class="io-panel">
+                <div class="panel-header">
+                  <span class="panel-icon">⌨️</span>
+                  <span>Input</span>
+                </div>
+                <textarea
+                  id="input-area"
+                  placeholder="Enter input values here (one per line)&#10;&#10;Example:&#10;5&#10;10"
+                ></textarea>
+                <div class="input-hint">
+                  💡 Each line will be used for one input() call
+                </div>
+              </div>
+
+              <div class="io-panel">
+                <div class="panel-header">
+                  <span class="panel-icon">📋</span>
+                  <span>Console Output</span>
+                </div>
+                <pre
+                  id="output"
+                ><span class="output-empty">Run your code to see output here...</span></pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- Complexity Sidebar (Always Visible) -->
+          <div class="complexity-sidebar">
+            <div class="panel-header">
+              <span class="panel-icon">⚡</span>
+              <span>Analysis</span>
+            </div>
+            <div class="panel-content" id="complexity-panel">
+              <div class="empty-state">
+                <div class="empty-icon">📊</div>
+                <div class="empty-text">
+                  Run your code to see<br />complexity analysis
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Sidebar (Slides in from right) -->
+        <div class="ai-sidebar" id="ai-sidebar">
+          <div class="sidebar-header">
+            <div class="sidebar-title">
+              <span class="panel-icon">🤖</span>
+              <span id="ai-sidebar-title">AI Assistant</span>
+            </div>
+            <button class="close-sidebar" id="close-ai-sidebar">✕</button>
+          </div>
+          <div class="ai-sidebar-content" id="ai-panel">
+            <div class="empty-state">
+              <div class="empty-icon">💡</div>
+              <div class="empty-text">Click an AI button to see results</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clike/clike.min.js"></script>
+
+    <script>
+      const samples = {
+        python: `# Calculate factorial using recursion
+def factorial(n):
+    if n <= 1:
+        return 1
+    return n * factorial(n - 1)
+
+# Get user input
+num = int(input("Enter a number: "))
+result = factorial(num)
+print(f"Factorial of {num} is {result}")`,
+        cpp: `#include <iostream>
+using namespace std;
+
+// Calculate factorial
+int factorial(int n) {
+    if (n <= 1) return 1;
+    return n * factorial(n - 1);
+}
+
+int main() {
+    int num;
+    cout << "Enter a number: ";
+    cin >> num;
+    cout << "Factorial: " << factorial(num) << endl;
+    return 0;
+}`,
+      };
+
+      const editor = CodeMirror.fromTextArea(
+        document.getElementById("editor"),
+        {
+          mode: "python",
+          theme: "dracula",
+          lineNumbers: true,
+          indentUnit: 4,
+          indentWithTabs: false,
+          lineWrapping: true,
+          matchBrackets: true,
+          autoCloseBrackets: true,
+        }
+      );
+
+      editor.setValue(samples.python);
+
+      const output = document.getElementById("output");
+      const inputArea = document.getElementById("input-area");
+      const languageSelect = document.getElementById("language");
+      const runBtn = document.getElementById("run");
+      const aiExplainBtn = document.getElementById("ai-explain");
+      const aiFixBtn = document.getElementById("ai-fix");
+      const aiReviewBtn = document.getElementById("ai-review");
+      const statusText = document.getElementById("status-text");
+      const complexityPanel = document.getElementById("complexity-panel");
+      const aiPanel = document.getElementById("ai-panel");
+      const aiSidebar = document.getElementById("ai-sidebar");
+      const closeSidebarBtn = document.getElementById("close-ai-sidebar");
+      const aiSidebarTitle = document.getElementById("ai-sidebar-title");
+
+      let errorLineHandle = null;
+      let currentAnalysis = null;
+      let lastError = null;
+      let lastDebugInfo = null;
+
+      // Sidebar controls
+      function openAISidebar(title) {
+        aiSidebarTitle.textContent = title;
+        aiSidebar.classList.add("open");
+      }
+
+      function closeAISidebar() {
+        aiSidebar.classList.remove("open");
+      }
+
+      closeSidebarBtn.addEventListener("click", closeAISidebar);
+
+      // Close sidebar on Escape key
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && aiSidebar.classList.contains("open")) {
+          closeAISidebar();
+        }
+      });
+
+      // Language switching
+      languageSelect.addEventListener("change", (e) => {
+        const lang = e.target.value;
+        editor.setOption("mode", lang === "cpp" ? "text/x-c++src" : "python");
+        editor.setValue(samples[lang]);
+        clearErrorHighlight();
+        editor.focus();
+        statusText.textContent = "Ready to code";
+        aiFixBtn.style.display = "none";
+      });
+
+      function clearErrorHighlight() {
+        if (errorLineHandle) {
+          editor.removeLineClass(errorLineHandle, "background", "error-line");
+          errorLineHandle = null;
+        }
+      }
+
+      function highlightErrorLine(lineNum) {
+        clearErrorHighlight();
+        if (lineNum && lineNum > 0 && lineNum <= editor.lineCount()) {
+          errorLineHandle = editor.addLineClass(
+            lineNum - 1,
+            "background",
+            "error-line"
+          );
+          editor.scrollIntoView({ line: lineNum - 1, ch: 0 }, 100);
+          editor.setCursor(lineNum - 1, 0);
+        }
+      }
+
+      function displayComplexity(analysis) {
+        if (!analysis) {
+          complexityPanel.innerHTML = `<div class="empty-state">
+          <div class="empty-icon">📊</div>
+          <div class="empty-text">Run your code to see<br>complexity analysis</div>
+        </div>`;
+          return;
+        }
+
+        let timeClass = "complexity-low";
+        let spaceClass = "complexity-low";
+
+        if (
+          analysis.complexity.includes("n^2") ||
+          analysis.complexity.includes("n²")
+        ) {
+          timeClass = "complexity-high";
+        } else if (
+          analysis.complexity.includes("n log n") ||
+          analysis.complexity.includes("2^n")
+        ) {
+          timeClass = "complexity-medium";
+        } else if (analysis.complexity.includes("(n)")) {
+          timeClass = "complexity-low";
+        }
+
+        if (
+          analysis.spaceComplexity &&
+          (analysis.spaceComplexity.includes("n^2") ||
+            analysis.spaceComplexity.includes("n²"))
+        ) {
+          spaceClass = "complexity-high";
+        } else if (
+          analysis.spaceComplexity &&
+          analysis.spaceComplexity.includes("(n)")
+        ) {
+          spaceClass = "complexity-medium";
+        }
+
+        complexityPanel.innerHTML = `
+        <div class="complexity-card">
+          <div class="complexity-header">
+            <div class="complexity-title">
+              <span>⏱️</span>
+              <span>Time Complexity</span>
+            </div>
+            <div class="complexity-badge ${timeClass}">${
+          analysis.complexity
+        }</div>
+          </div>
+          <div class="complexity-description">
+            ${getComplexityDescription(analysis.complexity, "time")}
+          </div>
+        </div>
+        
+        <div class="complexity-card">
+          <div class="complexity-header">
+            <div class="complexity-title">
+              <span>💾</span>
+              <span>Space Complexity</span>
+            </div>
+            <div class="complexity-badge ${spaceClass}">${
+          analysis.spaceComplexity || "O(1)"
+        }</div>
+          </div>
+          <div class="complexity-description">
+            ${getComplexityDescription(
+              analysis.spaceComplexity || "O(1)",
+              "space"
+            )}
+          </div>
+        </div>
+        
+        <div class="complexity-card">
+          <div class="complexity-header">
+            <div class="complexity-title">
+              <span>📈</span>
+              <span>Code Metrics</span>
+            </div>
+          </div>
+          <div class="complexity-details">
+            <div class="complexity-item">
+              <span class="complexity-label">Lines of Code</span>
+              <span class="complexity-value">${analysis.lines}</span>
+            </div>
+            <div class="complexity-item">
+              <span class="complexity-label">Has Recursion</span>
+              <span class="complexity-value">${
+                analysis.hasRecursion ? "✅ Yes" : "❌ No"
+              }</span>
+            </div>
+            <div class="complexity-item">
+              <span class="complexity-label">Has Loops</span>
+              <span class="complexity-value">${
+                analysis.hasLoops ? "✅ Yes" : "❌ No"
+              }</span>
+            </div>
+          </div>
+        </div>
+      `;
+      }
+
+      function getComplexityDescription(complexity, type) {
+        const descriptions = {
+          "O(1)":
+            type === "time"
+              ? "Constant time - executes in fixed time regardless of input size"
+              : "Constant space - uses fixed memory regardless of input size",
+          "O(log n)":
+            type === "time"
+              ? "Logarithmic time - very efficient, doubles the problem size only adds one more step"
+              : "Logarithmic space - memory grows slowly with input size",
+          "O(n)":
+            type === "time"
+              ? "Linear time - execution time grows proportionally with input size"
+              : "Linear space - memory usage grows proportionally with input size",
+          "O(n log n)": "Linearithmic time - efficient for sorting algorithms",
+          "O(n^2)":
+            type === "time"
+              ? "Quadratic time - execution time grows exponentially, consider optimization"
+              : "Quadratic space - high memory usage, consider optimization",
+          "O(n²)":
+            type === "time"
+              ? "Quadratic time - execution time grows exponentially, consider optimization"
+              : "Quadratic space - high memory usage, consider optimization",
+          "O(2^n)":
+            "Exponential time - very slow for large inputs, optimization needed",
+        };
+
+        return descriptions[complexity] || "Complexity analysis performed";
+      }
+
+      // RUN CODE
+      runBtn.addEventListener("click", async () => {
+        const code = editor.getValue();
+        const language = languageSelect.value;
+        const userInput = inputArea.value;
+
+        clearErrorHighlight();
+        output.innerHTML = '<span class="output-success">⏳ Running...</span>';
+        runBtn.disabled = true;
+        statusText.textContent = "Running...";
+        aiFixBtn.style.display = "none";
+
+        try {
+          const result = await window.api.runCode(language, code, userInput);
+          let text = "";
+
+          if (result.stdout) {
+            text += `<span class="output-success">${escapeHtml(
+              result.stdout
+            )}</span>`;
+          }
+
+          if (result.stderr) {
+            if (text) text += "\n\n";
+            text += `<span class="output-error">━━━ Error ━━━\n${escapeHtml(
+              result.stderr
+            )}</span>`;
+
+            lastError = result.stderr;
+            lastDebugInfo = result.debugInfo;
+
+            if (result.debugInfo && result.debugInfo.line) {
+              highlightErrorLine(result.debugInfo.line);
+            }
+
+            aiFixBtn.style.display = "flex";
+          }
+
+          output.innerHTML =
+            text || '<span class="output-empty">(no output)</span>';
+          statusText.textContent = result.stderr ? "Error" : "Success ✓";
+
+          if (result.analysis) {
+            currentAnalysis = result.analysis;
+            displayComplexity(result.analysis);
+          }
+        } catch (err) {
+          output.innerHTML = `<span class="output-error">━━━ Error ━━━\n${escapeHtml(
+            err.message
+          )}</span>`;
+          statusText.textContent = "Error";
+        } finally {
+          runBtn.disabled = false;
+          editor.focus();
+        }
+      });
+
+      // AI EXPLAIN CODE
+      aiExplainBtn.addEventListener("click", async () => {
+        const code = editor.getValue();
+        const language = languageSelect.value;
+        const userInput = inputArea.value;
+
+        openAISidebar("AI Code Explanation");
+        aiPanel.innerHTML =
+          '<div class="loading"><div class="spinner"></div><span>AI analyzing your code...</span></div>';
+        aiExplainBtn.disabled = true;
+        statusText.textContent = "AI thinking...";
+
+        try {
+          const result = await window.api.explainCode(
+            code,
+            language,
+            userInput
+          );
+
+          if (result.success && result.explanation) {
+            const exp = result.explanation;
+            let html = "";
+
+            // Overview
+            if (exp.overview) {
+              html += `
+              <div class="ai-section">
+                <div class="ai-section-title">📖 Code Overview</div>
+                <div class="ai-text">${escapeHtml(exp.overview)}</div>
+              </div>
+            `;
+            }
+
+            // Step by Step
+            if (exp.stepByStep && exp.stepByStep.length > 0) {
+              html +=
+                '<div class="ai-section"><div class="ai-section-title">🔍 Step-by-Step Breakdown</div>';
+              exp.stepByStep.forEach((step) => {
+                html += `
+                <div class="ai-step">
+                  <div class="ai-step-header">Step ${step.step}</div>
+                  <div class="ai-step-desc">${escapeHtml(
+                    step.description
+                  )}</div>
+                  ${
+                    step.code
+                      ? `<div class="ai-code-snippet">${escapeHtml(
+                          step.code
+                        )}</div>`
+                      : ""
+                  }
+                  ${
+                    step.variables
+                      ? `<div class="ai-variables">Variables: ${escapeHtml(
+                          step.variables
+                        )}</div>`
+                      : ""
+                  }
+                </div>
+              `;
+              });
+              html += "</div>";
+            }
+
+            // Dry Run
+            if (
+              exp.dryRun &&
+              (exp.dryRun.description || exp.dryRun.steps.length > 0)
+            ) {
+              html += `
+              <div class="ai-section">
+                <div class="ai-section-title">🎯 Dry Run (Example Execution)</div>
+                ${
+                  exp.dryRun.description
+                    ? `<div class="ai-text">${escapeHtml(
+                        exp.dryRun.description
+                      )}</div>`
+                    : ""
+                }
+            `;
+
+              if (exp.dryRun.steps && exp.dryRun.steps.length > 0) {
+                exp.dryRun.steps.forEach((step, idx) => {
+                  html += `<div class="ai-step"><div class="ai-step-desc">${escapeHtml(
+                    step
+                  )}</div></div>`;
+                });
+              }
+              html += "</div>";
+            }
+
+            // Key Points
+            if (exp.keyPoints && exp.keyPoints.length > 0) {
+              html +=
+                '<div class="ai-section"><div class="ai-section-title">💡 Key Learning Points</div>';
+              exp.keyPoints.forEach((point) => {
+                html += `<div class="best-practice-item">${escapeHtml(
+                  point
+                )}</div>`;
+              });
+              html += "</div>";
+            }
+
+            aiPanel.innerHTML = html;
+          } else {
+            aiPanel.innerHTML = `<div class="empty-state"><div class="empty-icon">❌</div><div class="empty-text">${escapeHtml(
+              result.error || "Failed to get explanation"
+            )}</div></div>`;
+          }
+
+          statusText.textContent = "Ready";
+        } catch (err) {
+          aiPanel.innerHTML = `<div class="empty-state"><div class="empty-icon">❌</div><div class="empty-text">Error: ${escapeHtml(
+            err.message
+          )}</div></div>`;
+          statusText.textContent = "Error";
+        } finally {
+          aiExplainBtn.disabled = false;
+        }
+      });
+
+      // AI FIX CODE
+      aiFixBtn.addEventListener("click", async () => {
+        if (!lastError) return;
+
+        const code = editor.getValue();
+        const language = languageSelect.value;
+
+        openAISidebar("AI Fix Suggestions");
+        aiPanel.innerHTML =
+          '<div class="loading"><div class="spinner"></div><span>AI finding solution...</span></div>';
+        aiFixBtn.disabled = true;
+        statusText.textContent = "AI fixing...";
+
+        try {
+          const result = await window.api.fixCode(
+            code,
+            lastError,
+            language,
+            lastDebugInfo
+          );
+
+          if (result.success && result.fix) {
+            const fix = result.fix;
+            let html = "";
+
+            // Diagnosis
+            if (fix.diagnosis) {
+              html += `
+              <div class="fix-diagnosis">
+                <div class="fix-title">🔍 Problem Diagnosis</div>
+                <div class="fix-text">${escapeHtml(fix.diagnosis)}</div>
+              </div>
+            `;
+            }
+
+            // Changes
+            if (fix.changes && fix.changes.length > 0) {
+              html +=
+                '<div class="ai-section"><div class="ai-section-title">🔧 Required Changes</div>';
+              fix.changes.forEach((change) => {
+                html += `
+                <div class="fix-change">
+                  ${
+                    change.line
+                      ? `<div class="fix-change-line">Line ${change.line}</div>`
+                      : ""
+                  }
+                  ${
+                    change.before
+                      ? `<div class="fix-before">❌ ${escapeHtml(
+                          change.before
+                        )}</div>`
+                      : ""
+                  }
+                  ${
+                    change.after
+                      ? `<div class="fix-after">✅ ${escapeHtml(
+                          change.after
+                        )}</div>`
+                      : ""
+                  }
+                  ${
+                    change.reason
+                      ? `<div class="fix-reason">${escapeHtml(
+                          change.reason
+                        )}</div>`
+                      : ""
+                  }
+                </div>
+              `;
+              });
+              html += "</div>";
+            }
+
+            // Fixed Code
+            if (fix.fixedCode && fix.fixedCode !== code) {
+              html += `
+              <div class="ai-section">
+                <div class="ai-section-title">✨ Corrected Code</div>
+                <div class="ai-code-snippet">${escapeHtml(fix.fixedCode)}</div>
+                <button class="apply-fix-btn" onclick="applyFixedCode()">Apply This Fix</button>
+              </div>
+            `;
+              window.fixedCodeCache = fix.fixedCode;
+            }
+
+            // Prevention
+            if (fix.prevention) {
+              html += `
+              <div class="ai-section">
+                <div class="ai-section-title">🛡️ How to Prevent This</div>
+                <div class="ai-text">${escapeHtml(fix.prevention)}</div>
+              </div>
+            `;
+            }
+
+            // Learning Point
+            if (fix.learningPoint) {
+              html += `
+              <div class="ai-section">
+                <div class="ai-section-title">📚 Key Learning</div>
+                <div class="best-practice-item">${escapeHtml(
+                  fix.learningPoint
+                )}</div>
+              </div>
+            `;
+            }
+
+            aiPanel.innerHTML = html;
+          } else {
+            aiPanel.innerHTML = `<div class="empty-state"><div class="empty-icon">❌</div><div class="empty-text">${escapeHtml(
+              result.error || "Failed to get fix"
+            )}</div></div>`;
+          }
+
+          statusText.textContent = "Ready";
+        } catch (err) {
+          aiPanel.innerHTML = `<div class="empty-state"><div class="empty-icon">❌</div><div class="empty-text">Error: ${escapeHtml(
+            err.message
+          )}</div></div>`;
+          statusText.textContent = "Error";
+        } finally {
+          aiFixBtn.disabled = false;
+        }
+      });
+
+      // AI BEST PRACTICES
+      aiReviewBtn.addEventListener("click", async () => {
+        const code = editor.getValue();
+        const language = languageSelect.value;
+
+        if (!currentAnalysis) {
+          openAISidebar("Best Practices Review");
+          aiPanel.innerHTML =
+            '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">Please run your code first<br>to get analysis</div></div>';
+          return;
+        }
+
+        openAISidebar("Best Practices Review");
+        aiPanel.innerHTML =
+          '<div class="loading"><div class="spinner"></div><span>AI reviewing your code...</span></div>';
+        aiReviewBtn.disabled = true;
+        statusText.textContent = "AI reviewing...";
+
+        try {
+          const result = await window.api.getBestPractices(
+            code,
+            language,
+            currentAnalysis
+          );
+
+          if (result.success && result.review) {
+            const review = result.review;
+            let html = "";
+
+            // Rating
+            if (review.overallRating) {
+              html += `<div class="review-rating">📊 Code Quality: ${escapeHtml(
+                review.overallRating
+              )}</div>`;
+            }
+
+            // Strengths
+            if (review.strengths && review.strengths.length > 0) {
+              html +=
+                '<div class="ai-section"><div class="ai-section-title">✅ What You Did Well</div>';
+              review.strengths.forEach((strength) => {
+                html += `<div class="best-practice-item">${escapeHtml(
+                  strength
+                )}</div>`;
+              });
+              html += "</div>";
+            }
+
+            // Improvements
+            if (review.improvements && review.improvements.length > 0) {
+              html +=
+                '<div class="ai-section"><div class="ai-section-title">🚀 Suggested Improvements</div>';
+              review.improvements.forEach((imp) => {
+                const priorityClass = `priority-${(
+                  imp.priority || "medium"
+                ).toLowerCase()}`;
+                html += `
+                <div class="improvement-card">
+                  <div class="improvement-header">
+                    <div class="improvement-category">${escapeHtml(
+                      imp.category || "General"
+                    )}</div>
+                    <div class="priority-badge ${priorityClass}">${escapeHtml(
+                  imp.priority || "Medium"
+                )}</div>
+                  </div>
+                  <div class="improvement-issue"><strong>Issue:</strong> ${escapeHtml(
+                    imp.issue
+                  )}</div>
+                  <div class="improvement-suggestion"><strong>Suggestion:</strong> ${escapeHtml(
+                    imp.suggestion
+                  )}</div>
+                  ${
+                    imp.example
+                      ? `<div class="ai-code-snippet">${escapeHtml(
+                          imp.example
+                        )}</div>`
+                      : ""
+                  }
+                </div>
+              `;
+              });
+              html += "</div>";
+            }
+
+            // Optimized Code
+            if (review.optimizedCode && review.optimizedCode !== code) {
+              html += `
+              <div class="ai-section">
+                <div class="ai-section-title">⚡ Optimized Version</div>
+                ${
+                  review.complexityImprovement
+                    ? `<div class="ai-text">${escapeHtml(
+                        review.complexityImprovement
+                      )}</div>`
+                    : ""
+                }
+                <div class="ai-code-snippet">${escapeHtml(
+                  review.optimizedCode
+                )}</div>
+                <button class="apply-fix-btn" onclick="applyOptimizedCode()">Apply Optimization</button>
+              </div>
+            `;
+              window.optimizedCodeCache = review.optimizedCode;
+            }
+
+            // Best Practices
+            if (review.bestPractices && review.bestPractices.length > 0) {
+              html +=
+                '<div class="ai-section"><div class="ai-section-title">📖 Best Practices to Follow</div>';
+              review.bestPractices.forEach((practice) => {
+                html += `<div class="best-practice-item">${escapeHtml(
+                  practice
+                )}</div>`;
+              });
+              html += "</div>";
+            }
+
+            aiPanel.innerHTML = html;
+          } else {
+            aiPanel.innerHTML = `<div class="empty-state"><div class="empty-icon">❌</div><div class="empty-text">${escapeHtml(
+              result.error || "Failed to get review"
+            )}</div></div>`;
+          }
+
+          statusText.textContent = "Ready";
+        } catch (err) {
+          aiPanel.innerHTML = `<div class="empty-state"><div class="empty-icon">❌</div><div class="empty-text">Error: ${escapeHtml(
+            err.message
+          )}</div></div>`;
+          statusText.textContent = "Error";
+        } finally {
+          aiReviewBtn.disabled = false;
+        }
+      });
+
+      // Apply Fixed Code
+      window.applyFixedCode = function () {
+        if (window.fixedCodeCache) {
+          editor.setValue(window.fixedCodeCache);
+          clearErrorHighlight();
+          statusText.textContent = "Fix applied! Run to test";
+          aiFixBtn.style.display = "none";
+        }
+      };
+
+      // Apply Optimized Code
+      window.applyOptimizedCode = function () {
+        if (window.optimizedCodeCache) {
+          editor.setValue(window.optimizedCodeCache);
+          statusText.textContent = "Optimization applied! Run to test";
+        }
+      };
+
+      function escapeHtml(text) {
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      // Keyboard shortcuts
+      editor.setOption("extraKeys", {
+        "Ctrl-Enter": () => runBtn.click(),
+        "Cmd-Enter": () => runBtn.click(),
+      });
+
+      setTimeout(() => {
+        editor.focus();
+        statusText.textContent = "Ready to code";
+      }, 100);
+
+      console.log("🚀 AI-Enhanced Code Debugger initialized!");
+      console.log("💡 Press Ctrl/Cmd + Enter to run code");
+
+      let ghostTextTimeout;
+      let currentGhostText = null;
+      let ghostTextWidget = null;
+      let ghostTextPosition = null;
+      let isProcessingSuggestion = false;
+
+      let currentProjectId = null;
+      let syncDebounceTimer = null;
+      let isRemoteUpdate = false;
+
+      // Check if we're loading a specific project
+      const urlParams = new URLSearchParams(window.location.search);
+      const projectId = urlParams.get("project");
+      const projectLang = urlParams.get("lang");
+      const projectName = urlParams.get("name");
+
+      if (projectId) {
+        currentProjectId = projectId;
+
+        // Update UI
+        if (projectName) {
+          document.querySelector(".logo-text").textContent = `AI Code Debugger - ${decodeURIComponent(projectName)}`;
+        }
+
+        if (projectLang) {
+          languageSelect.value = projectLang;
+          editor.setOption("mode", projectLang === "cpp" ? "text/x-c++src" : "python");
+        }
+
+        // Load project from Firebase
+        loadFirebaseProject(projectId);
+
+        // Start listening for real-time updates
+        window.api.firebaseListenProject(projectId);
+
+        // Add sync status indicator
+        addSyncIndicator();
+      }
+
+      function clearGhostText() {
+        if (ghostTextWidget) {
+          try {
+            const parent = ghostTextWidget.parentNode;
+            if (parent) {
+              parent.removeChild(ghostTextWidget);
+            }
+          } catch (e) {
+            console.log("Widget already cleared");
+          }
+          ghostTextWidget = null;
+        }
+        currentGhostText = null;
+        ghostTextPosition = null;
+      }
+
+      // ✅ SINGLE COMBINED editor.on('change') listener
+      editor.on("change", (cm, changeObj) => {
+        // === PART 1: GEMINI GHOST TEXT ===
+        clearTimeout(ghostTextTimeout);
+
+        // Clear ghost text immediately on any user typing
+        if (
+          changeObj.origin === "+input" ||
+          changeObj.origin === "+delete" ||
+          changeObj.origin === "paste"
+        ) {
+          clearGhostText();
+        }
+
+        // === PART 2: FIREBASE SYNC ===
+        // Skip if this was a remote update
+        if (isRemoteUpdate) return;
+
+        // Only sync if we're working on a cloud project
+        if (currentProjectId) {
+          // Skip if change was from setValue
+          if (changeObj.origin !== "setValue") {
+            // Clear existing timer
+            clearTimeout(syncDebounceTimer);
+            statusText.textContent = "💾 Saving...";
+
+            // Debounce: save 800ms after user stops typing
+            syncDebounceTimer = setTimeout(async () => {
+              try {
+                const code = editor.getValue();
+                const result = await window.api.firebaseUpdateProject(currentProjectId, code);
+
+                if (result.success) {
+                  statusText.textContent = "✅ Saved to cloud";
+                  console.log("☁️ Synced to Firebase");
+
+                  setTimeout(() => {
+                    statusText.textContent = "Ready to code";
+                  }, 2000);
+                } else {
+                  console.error("Sync error:", result.error);
+                  statusText.textContent = "⚠️ Sync failed";
+                }
+              } catch (err) {
+                console.error("Sync error:", err);
+                statusText.textContent = "⚠️ Sync failed";
+              }
+            }, 800);
+          }
+        }
+
+        // === PART 3: OLLAMA SUGGESTIONS (after debounce) ===
+        // Don't suggest while already processing
+        if (isProcessingSuggestion) {
+          return;
+        }
+
+        // Debounce: wait 1 second after user stops typing for suggestions
+        ghostTextTimeout = setTimeout(async () => {
+          try {
+            isProcessingSuggestion = true;
+
+            const code = editor.getValue();
+            const language = languageSelect.value;
+            const cursor = editor.getCursor();
+            const currentLine = editor.getLine(cursor.line);
+
+            // Don't suggest on empty lines or lines ending with certain characters
+            if (
+              !currentLine.trim() ||
+              currentLine.trim().endsWith(":") ||
+              currentLine.trim().endsWith("{") ||
+              currentLine.trim().endsWith(";") ||
+              currentLine.trim().endsWith(",")
+            ) {
+              isProcessingSuggestion = false;
+              return;
+            }
+
+            // Don't suggest if cursor is not at end of line
+            const lineLength = currentLine.length;
+            if (cursor.ch !== lineLength) {
+              isProcessingSuggestion = false;
+              return;
+            }
+
+            statusText.textContent = "🤖 AI suggesting...";
+
+            const position = {
+              lineNumber: cursor.line + 1,
+              column: cursor.ch + 1,
+            };
+
+            const result = await window.api.geminiSuggest(code, language, position);
+
+            // Check cursor hasn't moved during the API call
+            const newCursor = editor.getCursor();
+            if (newCursor.line !== cursor.line || newCursor.ch !== cursor.ch) {
+              statusText.textContent = "Ready to code";
+              isProcessingSuggestion = false;
+              return;
+            }
+
+            if (result.success && result.suggestion && result.suggestion.trim()) {
+              clearGhostText();
+
+              currentGhostText = result.suggestion;
+              ghostTextPosition = { line: cursor.line, ch: cursor.ch };
+
+              // Create ghost text widget
+              const widget = document.createElement("span");
+              widget.style.color = "#6a9955";
+              widget.style.opacity = "0.5";
+              widget.style.fontStyle = "italic";
+              widget.style.pointerEvents = "none";
+              widget.style.userSelect = "none";
+              widget.style.marginLeft = "2px";
+              widget.className = "ghost-text-suggestion";
+              widget.textContent = result.suggestion;
+
+              ghostTextWidget = widget;
+
+              const coords = editor.cursorCoords(cursor, "local");
+              const scrollInfo = editor.getScrollInfo();
+
+              widget.style.position = "absolute";
+              widget.style.left = coords.left + "px";
+              widget.style.top = coords.top - scrollInfo.top + "px";
+              widget.style.zIndex = "10";
+
+              const sizer = editor.getWrapperElement().querySelector(".CodeMirror-sizer");
+              if (sizer) {
+                sizer.appendChild(widget);
+                statusText.textContent = "💡 Tab: accept | Esc: dismiss";
+              }
+            } else {
+              statusText.textContent = "Ready to code";
+            }
+          } catch (err) {
+            console.error("Gemini suggestion error:", err);
+            statusText.textContent = "Ready to code";
+          } finally {
+            isProcessingSuggestion = false;
+          }
+        }, 1000);
+      });
+
+      // Clean up ghost text on cursor move
+      editor.on("cursorActivity", () => {
+        if (ghostTextWidget && ghostTextPosition) {
+          const cursor = editor.getCursor();
+          if (cursor.line !== ghostTextPosition.line || cursor.ch !== ghostTextPosition.ch) {
+            clearGhostText();
+            statusText.textContent = "Ready to code";
+          }
+        }
+      });
+
+      // Clean up on scroll
+      editor.on("scroll", () => {
+        if (ghostTextWidget) {
+          clearGhostText();
+        }
+      });
+
+      // ✅ Keyboard shortcuts (already defined earlier, keep this)
+      editor.setOption("extraKeys", {
+        "Ctrl-Enter": () => runBtn.click(),
+        "Cmd-Enter": () => runBtn.click(),
+        Tab: (cm) => {
+          if (currentGhostText) {
+            const cursor = cm.getCursor();
+            cm.replaceRange(currentGhostText, cursor);
+            clearGhostText();
+            statusText.textContent = "✅ Suggestion accepted";
+            setTimeout(() => {
+              statusText.textContent = "Ready to code";
+            }, 2000);
+            return;
+          }
+          cm.execCommand("indentMore");
+        },
+        Esc: (cm) => {
+          if (currentGhostText) {
+            clearGhostText();
+            statusText.textContent = "Suggestion dismissed";
+            setTimeout(() => {
+              statusText.textContent = "Ready to code";
+            }, 2000);
+            return;
+          }
+        },
+      });
+
+      // ============================================
+      // FIREBASE FUNCTIONS
+      // ============================================
+
+      async function loadFirebaseProject(projectId) {
+        try {
+          statusText.textContent = "Loading from cloud...";
+
+          const result = await window.api.firebaseGetProject(projectId);
+
+          if (result.success) {
+            isRemoteUpdate = true;
+            editor.setValue(result.project.code);
+            isRemoteUpdate = false;
+
+            statusText.textContent = "✅ Synced with cloud";
+
+            if (result.project.lastModifiedBy === "mobile") {
+              showSyncBanner("Updated from mobile app");
+            }
+
+            setTimeout(() => {
+              statusText.textContent = "Ready to code";
+            }, 3000);
+          } else {
+            statusText.textContent = "Failed to load project";
+            console.error("Load error:", result.error);
+          }
+        } catch (err) {
+          console.error("Load error:", err);
+          statusText.textContent = "Failed to load project";
+        }
+      }
+
+      // Listen for real-time updates from Firebase
+      window.api.onProjectUpdated((project) => {
+        if (project.id === currentProjectId && project.lastModifiedBy !== "desktop") {
+          console.log("📱 Received update from", project.lastModifiedBy);
+
+          isRemoteUpdate = true;
+          const currentCursor = editor.getCursor();
+          editor.setValue(project.code);
+          editor.setCursor(currentCursor);
+          isRemoteUpdate = false;
+
+          showSyncBanner(`Updated from ${project.lastModifiedBy}`);
+          statusText.textContent = "✅ Synced with cloud";
+
+          setTimeout(() => {
+            statusText.textContent = "Ready to code";
+          }, 2000);
+        }
+      });
+
+      function addSyncIndicator() {
+        const syncIndicator = document.createElement("div");
+        syncIndicator.id = "sync-indicator";
+        syncIndicator.className = "status";
+        syncIndicator.style.background = "rgba(16, 185, 129, 0.1)";
+        syncIndicator.innerHTML = `
+          <span style="font-size: 16px;">☁️</span>
+          <span id="sync-status">Cloud Sync Active</span>
+        `;
+
+        const spacer = document.querySelector(".spacer");
+        if (spacer) {
+          spacer.parentNode.insertBefore(syncIndicator, spacer);
+        }
+      }
+
+      function showSyncBanner(message) {
+        const existingBanner = document.getElementById("sync-banner");
+        if (existingBanner) {
+          existingBanner.remove();
+        }
+
+        const banner = document.createElement("div");
+        banner.id = "sync-banner";
+        banner.style.cssText = `
+          position: fixed;
+          top: 70px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+          color: white;
+          padding: 12px 24px;
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+          z-index: 1000;
+          font-size: 14px;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          animation: slideDown 0.3s ease;
+        `;
+        banner.innerHTML = `<span>🔄</span><span>${message}</span>`;
+
+        document.body.appendChild(banner);
+
+        setTimeout(() => {
+          banner.style.animation = "slideUp 0.3s ease";
+          setTimeout(() => banner.remove(), 300);
+        }, 3000);
+      }
+
+      // Add animations
+      const style = document.createElement("style");
+      style.textContent = `
+        @keyframes slideDown {
+          from {
+            transform: translate(-50%, -100%);
+            opacity: 0;
+          }
+          to {
+            transform: translate(-50%, 0);
+            opacity: 1;
+          }
+        }
+        
+        @keyframes slideUp {
+          from {
+            transform: translate(-50%, 0);
+            opacity: 1;
+          }
+          to {
+            transform: translate(-50%, -100%);
+            opacity: 0;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+
+      // Manual sync button
+      const manualSyncBtn = document.createElement("button");
+      manualSyncBtn.innerHTML = "<span>☁️</span><span>Sync Now</span>";
+      manualSyncBtn.style.cssText = `
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        margin-left: 12px;
+        display: ${currentProjectId ? "flex" : "none"};
+      `;
+
+      manualSyncBtn.addEventListener("click", async () => {
+        if (!currentProjectId) return;
+
+        manualSyncBtn.disabled = true;
+        statusText.textContent = "☁️ Syncing...";
+
+        try {
+          const code = editor.getValue();
+          const result = await window.api.firebaseUpdateProject(currentProjectId, code);
+
+          if (result.success) {
+            statusText.textContent = "✅ Synced!";
+            showSyncBanner("Manually synced to cloud");
+          } else {
+            statusText.textContent = "⚠️ Sync failed";
+            alert("Sync failed: " + result.error);
+          }
+        } catch (err) {
+          statusText.textContent = "⚠️ Sync failed";
+          alert("Sync failed: " + err.message);
+        } finally {
+          manualSyncBtn.disabled = false;
+          setTimeout(() => {
+            statusText.textContent = "Ready to code";
+          }, 2000);
+        }
+      });
+
+      // Add manual sync button to toolbar
+      if (aiReviewBtn && currentProjectId) {
+        aiReviewBtn.parentNode.insertBefore(manualSyncBtn, aiReviewBtn.nextSibling);
+      }
+
+      // Add "Back to Projects" button
+      if (currentProjectId) {
+        const backBtn = document.createElement("button");
+        backBtn.innerHTML = "<span>←</span><span>Projects</span>";
+        backBtn.style.cssText = `
+          background: transparent;
+          color: #6366f1;
+          border: 1.5px solid #6366f1;
+          box-shadow: none;
+        `;
+        backBtn.addEventListener("click", () => {
+          window.location.href = "login.html";
+        });
+
+        const toolbar = document.getElementById("toolbar");
+        toolbar.insertBefore(backBtn, toolbar.firstChild);
+      }
+
+      // Cleanup on window close
+      window.addEventListener("beforeunload", () => {
+        if (currentProjectId) {
+          window.api.firebaseStopListening(currentProjectId);
+        }
+      });
+
+      console.log("✅ Gemini autocomplete + Firebase sync initialized!");
+      console.log(currentProjectId ? `📁 Project: ${currentProjectId}` : "📝 Local mode");
+      document.getElementById('back-to-login-btn')?.addEventListener('click', async () => {
+        if (confirm('Go back to project list? Any unsaved changes will be lost.')) {
+          await window.api.navigateToLogin();
+        }
+      });
+    </script>
+  </body>
+</html>

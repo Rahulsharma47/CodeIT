@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "906397335820",
+    "project_id": "ai-code-debugger-cd684",
+    "storage_bucket": "ai-code-debugger-cd684.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:906397335820:android:49228c327ba30add258929",
+        "android_client_info": {
+          "package_name": "com.ai_debugger.example"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA9z7_nsBI2nv3L-5uqX_HNMMBkVJOuri8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
